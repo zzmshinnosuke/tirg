@@ -1,3 +1,16 @@
+20210625
+安装最新的pytorch1.9出错，ERROR: Unexpected segmentation fault encountered in worker,可能是数据加载有问题，改成pytorch1.7后正常了。
+
+20201126
+torch.nn.module中forward()函数不能用@staticmethod，否则会提示 forward() missing 1 required positional argument: 'x'
+
+
+20201112
+将程序的版本从python2转为了python3，pytorch版本也转为了pytorch-1.7
+具体修改：1.使用python内置工具2to3，直接将python代码转化
+2.pytorch中的torch.autograd.Function在版本升级后，构建方法发生了变化。
+修改了torch_functions.py中的MyTripletLossFunc类。
+
 # Composing Text and Image for Image Retrieval
 
 This is the code for the paper:
@@ -137,8 +150,6 @@ Our pretrained models can be downloaded below. You can find our best single mode
 - [Fashion200k Model](https://storage.googleapis.com/image_retrieval_css/pretrained_models/checkpoint_fashion200k.pth): 0.161
 - [MITStates Model](https://storage.googleapis.com/image_retrieval_css/pretrained_models/checkpoint_mitstates.pth): 0.132
 
-
-These saved weights might not be working correctly any more with new version, please refer to https://github.com/google/tirg/issues/12
 
 
 ## Notes:

@@ -30,22 +30,16 @@ class SimpleVocab(object):
 
   def tokenize_text(self, text):
     text = text.encode('ascii', 'ignore').decode('ascii')
-    tokens = str(text).lower()
-    tokens = tokens.translate(str.maketrans('','',string.punctuation))
-    tokens = tokens.strip().split()
+    tokens = str(text).lower().translate(string.punctuation).strip().split()
     return tokens
 
-  def build(self, texts):
-    for text in texts:
-      tokens = self.tokenize_text(text)
-      for token in tokens:
-        if token not in self.wordcount:
-          self.wordcount[token] = 0
-        self.wordcount[token] += 1
-    for token in sorted(list(self.wordcount.keys())):
+  def add_text_to_vocab(self, text):
+    tokens = self.tokenize_text(text)
+    for token in tokens:
       if token not in self.word2id:
         self.word2id[token] = len(self.word2id)
-
+        self.wordcount[token] = 0
+      self.wordcount[token] += 1
 
   def threshold_rare_words(self, wordcount_threshold=5):
     for w in self.word2id:
@@ -71,7 +65,8 @@ class TextLSTMModel(torch.nn.Module):
     super(TextLSTMModel, self).__init__()
 
     self.vocab = SimpleVocab()
-    self.vocab.build(texts_to_build_vocab)
+    for text in texts_to_build_vocab:
+      self.vocab.add_text_to_vocab(text)
     vocab_size = self.vocab.get_size()
 
     self.word_embed_dim = word_embed_dim
@@ -86,7 +81,7 @@ class TextLSTMModel(torch.nn.Module):
   def forward(self, x):
     """ input x: list of strings"""
     if type(x) is list:
-      if type(x[0]) is str or type(x[0]) is unicode:
+      if type(x[0]) is str or type(x[0]) is str:
         x = [self.vocab.encode_text(text) for text in x]
 
     assert type(x) is list

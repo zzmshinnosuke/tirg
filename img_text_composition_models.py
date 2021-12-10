@@ -22,7 +22,6 @@ import torch.nn.functional as F
 import text_model
 import torch_functions
 
-
 class ConCatModule(torch.nn.Module):
 
   def __init__(self):
@@ -69,7 +68,7 @@ class ImgTextCompositionBase(torch.nn.Module):
 
   def compute_soft_triplet_loss_(self, mod_img1, img2):
     triplets = []
-    labels = range(mod_img1.shape[0]) + range(img2.shape[0])
+    labels = list(range(mod_img1.shape[0])) +list(range(img2.shape[0]))
     for i in range(len(labels)):
       triplets_i = []
       for j in range(len(labels)):
@@ -99,7 +98,7 @@ class ImgEncoderTextEncoderBase(ImgTextCompositionBase):
     img_model = torchvision.models.resnet18(pretrained=True)
 
     class GlobalAvgPool2d(torch.nn.Module):
-
+    
       def forward(self, x):
         return F.adaptive_avg_pool2d(x, (1, 1))
 
@@ -149,7 +148,7 @@ class Concat(ImgEncoderTextEncoderBase):
             torch.nn.Linear(2 * embed_dim, 2 * embed_dim),
             torch.nn.BatchNorm1d(2 * embed_dim), torch.nn.ReLU(),
             torch.nn.Dropout(0.1), torch.nn.Linear(2 * embed_dim, embed_dim))
-
+    
       def forward(self, x):
         f = torch.cat(x, dim=1)
         f = self.m(f)
@@ -195,7 +194,7 @@ class TIRG(ImgEncoderTextEncoderBase):
   def compose_img_text_features(self, img_features, text_features):
     f1 = self.gated_feature_composer((img_features, text_features))
     f2 = self.res_info_composer((img_features, text_features))
-    f = F.sigmoid(f1) * img_features * self.a[0] + f2 * self.a[1]
+    f = torch.sigmoid(f1) * img_features * self.a[0] + f2 * self.a[1]
     return f
 
 
@@ -247,7 +246,7 @@ class TIRGLastConv(ImgEncoderTextEncoderBase):
     z = torch.cat((x, y), dim=1)
     t = self.mod2d(z)
     tgate = self.mod2d_gate(z)
-    x = self.a[0] * F.sigmoid(tgate) * x + self.a[1] * t
+    x = self.a[0] * torch.sigmoid(tgate) * x + self.a[1] * t
 
     x = self.img_model.avgpool(x)
     x = x.view(x.size(0), -1)

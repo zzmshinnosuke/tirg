@@ -30,9 +30,9 @@ import torch
 import torch.utils.data
 import torchvision
 from tqdm import tqdm as tqdm
-
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 torch.set_num_threads(3)
-
 
 def parse_opt():
   """Parses the input arguments."""
@@ -185,7 +185,8 @@ def train_loop(opt, logger, trainset, testset, model, optimizer):
     epoch += 1
 
     # show/log stats
-    print('It', it, 'epoch', epoch, 'Elapsed time', round(time.time() - tic, 4), opt.comment)
+    print('It', it, 'epoch', epoch, 'Elapsed time', round(time.time() - tic,
+                                                          4), opt.comment)
     tic = time.time()
     for loss_name in losses_tracking:
       avg_loss = np.mean(losses_tracking[loss_name][-len(trainloader):])
@@ -230,6 +231,7 @@ def train_loop(opt, logger, trainset, testset, model, optimizer):
       img2 = torch.from_numpy(img2).float()
       img2 = torch.autograd.Variable(img2).cuda()
       mods = [str(d['mod']['str']) for d in data]
+      mods = [t.encode('utf-8').decode('utf-8') for t in mods]
 
       # compute loss
       losses = []
@@ -278,16 +280,17 @@ def train_loop(opt, logger, trainset, testset, model, optimizer):
 def main():
   opt = parse_opt()
   print('Arguments:')
-  for k in opt.__dict__.keys():
+  for k in list(opt.__dict__.keys()):
     print('    ', k, ':', str(opt.__dict__[k]))
 
   logger = SummaryWriter(comment=opt.comment)
   print('Log files saved to', logger.file_writer.get_logdir())
-  for k in opt.__dict__.keys():
+  for k in list(opt.__dict__.keys()):
     logger.add_text(k, str(opt.__dict__[k]))
 
   trainset, testset = load_dataset(opt)
-  model, optimizer = create_model_and_optimizer(opt, trainset.get_all_texts())
+  model, optimizer = create_model_and_optimizer(
+      opt, [t.encode('utf-8').decode('utf-8') for t in trainset.get_all_texts()])
 
   train_loop(opt, logger, trainset, testset, model, optimizer)
   logger.close()
